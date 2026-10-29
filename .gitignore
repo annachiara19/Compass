@@ -6,8 +6,6 @@ data/
 secret_key
 # backups and exports: they contain personal data
 *.compass
-*.bussola
-*.grip
 *.ics
 backup/
 *.log

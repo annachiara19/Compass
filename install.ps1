@@ -74,8 +74,6 @@ $shell = New-Object -ComObject WScript.Shell
 $places = @([Environment]::GetFolderPath('Desktop'), [Environment]::GetFolderPath('Programs'))
 foreach ($place in $places) {
     if (-not $place) { continue }
-    # earlier versions were called Bussola and GRiP: remove their icons (Compass picks up their data on first start)
-    Remove-Item -ErrorAction SilentlyContinue -LiteralPath (Join-Path $place 'Bussola.lnk'), (Join-Path $place 'GRiP.lnk')
     $lnk = $shell.CreateShortcut((Join-Path $place 'Compass.lnk'))
     $lnk.TargetPath = $pythonw
     $lnk.Arguments = '"' + $launcher + '"'

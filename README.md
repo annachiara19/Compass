@@ -36,8 +36,7 @@ Everyday instructions are in `README.txt`.
 - **Command line** (any OS): `pip install -r requirements.txt` and `python compass_launcher.pyw`
   (or `--no-window`). It opens on http://127.0.0.1:8797.
 
-Data lives in `%LOCALAPPDATA%\Compass` (on Linux/macOS `~/.local/share/Compass`). On first start, data from
-earlier versions of the app (Bussola, GRiP) is imported automatically.
+Data lives in `%LOCALAPPDATA%\Compass` (on Linux/macOS `~/.local/share/Compass`).
 
 ## Layout
 

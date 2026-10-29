@@ -8,7 +8,6 @@ Closing the window takes another backup and stops Compass. The last 30 copies ar
 
 Data lives in %LOCALAPPDATA%\\Compass (database, settings, log), outside the program folder:
 updating the program never touches the data. Compass only answers this PC (127.0.0.1).
-Data from earlier versions (Bussola, GRiP) is picked up automatically on first start.
 
 To try it without the window:  py compass_launcher.pyw --no-window
 """
@@ -106,22 +105,6 @@ def already_running():
 
 
 # ---------------------------------------------------------------- dati e backup
-
-def import_previous_version():
-    """If Compass is still empty and data from an earlier version exists (Bussola, then GRiP), bring it here."""
-    if DB_FILE.exists():
-        return None
-    for name, db in (("Bussola", "bussola.sqlite3"), ("GRiP", "grip.sqlite3")):
-        old = HOME.parent / name / "data" / db
-        if old.exists():
-            copy_db(old, DB_FILE)
-            key = old.parent / "secret_key"
-            if key.exists():
-                (DATA_DIR / "secret_key").write_bytes(key.read_bytes())
-            print(f"data imported from {old}")
-            return name
-    return None
-
 
 def copy_db(src, dest):
     """Consistent copy of a SQLite database, even while in use."""
@@ -321,10 +304,6 @@ def main():
         return 0
     cfg = load_config()
     try:
-        previous = import_previous_version()
-        if previous:
-            cfg["imported_from"] = previous
-            save_config(cfg)
         make_backup(cfg, "start")
         os.environ["COMPASS_BACKUP_DIR"] = str(backup_dir(cfg))   # the copy taken before an import goes there too
         port = pick_port(int(cfg.get("port", DEFAULT_PORT)))

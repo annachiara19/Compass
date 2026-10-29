@@ -15,9 +15,6 @@ INSTALLATION (once)
    creates the Compass icon on the desktop and in the Start menu.
 4. On first start you create your user (username and password).
 
-If you used an earlier version (Bussola or GRiP), Compass picks up its
-data on first start, and the installation removes the old icons.
-
 
 EVERYDAY USE
 ------------
