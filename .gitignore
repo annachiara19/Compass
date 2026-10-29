@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+data/
+*.sqlite3
+*.sqlite3-*
+secret_key
+# backups and exports: they contain personal data
+*.compass
+*.bussola
+*.grip
+*.ics
+backup/
+*.log

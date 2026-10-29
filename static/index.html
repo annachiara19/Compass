@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Compass · Research and people management</title>
+<link rel="icon" href="static/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="static/icons/compass-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="static/icons/compass-180.png">
+<link rel="stylesheet" href="static/app.css">
+</head>
+<body>
+
+<!-- Sign-in and first run -->
+<div id="login-screen" class="login" hidden>
+  <form id="login-form" class="login-card" novalidate>
+    <div class="login-brand"><img src="static/favicon.svg" alt="" width="52" height="52"><div><h1>Compass</h1><p class="eyebrow">Research and people management</p></div></div>
+    <p class="login-ok" id="login-ok" hidden></p>
+    <label class="field"><span>Username</span><input id="l-user" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" required></label>
+    <label class="field"><span>Password</span><input id="l-pass" type="password" autocomplete="current-password" required></label>
+    <p class="form-err" id="login-err" hidden></p>
+    <button class="btn primary wide" type="submit" id="login-btn">Sign in</button>
+  </form>
+
+  <form id="setup-form" class="login-card" hidden novalidate>
+    <div class="login-brand"><img src="static/favicon.svg" alt="" width="52" height="52"><div><h1>Welcome to Compass</h1><p class="eyebrow">Research and people management</p></div></div>
+    <p class="hint">Create your user. Your data stays on this PC.</p>
+    <label class="field"><span>Full name</span><input id="s-name" type="text" autocomplete="name" maxlength="80" required></label>
+    <label class="field"><span>Username</span><input id="s-user" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="60" required></label>
+    <label class="field"><span>Password</span><input id="s-pass" type="password" autocomplete="new-password" placeholder="at least 10 characters" required></label>
+    <label class="field"><span>Repeat password</span><input id="s-pass2" type="password" autocomplete="new-password" required></label>
+    <p class="form-err" id="setup-err" hidden></p>
+    <button class="btn primary wide" type="submit" id="setup-btn">Create and sign in</button>
+    <p class="hint setup-alt">Already used Compass on another PC? <button class="linkbtn" type="button" id="setup-import-btn" data-action="setup-import">Import a backup</button><br>Choose the <span class="mono">.compass</span> file exported from the other PC.</p>
+    <input type="file" id="setup-archive" accept=".compass,.bussola,.grip,.sqlite3" hidden>
+  </form>
+  <footer class="credits">Compass was built by Annachiara Ruospo with the help of Claude (Anthropic)</footer>
+</div>
+
+<!-- App -->
+<div class="wrap" id="app" hidden>
+  <header class="top">
+    <div class="brand-row"><img class="brand-logo" src="static/favicon.svg" alt="" width="44" height="44"><div><p class="eyebrow">Research and people management</p><h1>Compass</h1></div></div>
+    <div class="top-side">
+      <span class="today" id="today"></span>
+      <button class="btn primary" type="button" data-action="new" data-ent="tasks">+ Task</button>
+      <button class="btn" type="button" data-action="new" data-ent="people">+ Person</button>
+      <button class="btn" type="button" data-action="new" data-ent="projects">+ Project</button>
+      <button class="btn ghost" type="button" data-action="settings">Settings</button>
+      <button class="btn ghost" type="button" data-action="logout">Sign out</button>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="Sections">
+    <button class="tab" role="tab" type="button" data-action="tab" data-tab="today">Today</button>
+    <button class="tab" role="tab" type="button" data-action="tab" data-tab="tasks">Tasks <span class="count" id="c-tasks">–</span></button>
+    <button class="tab" role="tab" type="button" data-action="tab" data-tab="calendar">Calendar</button>
+    <button class="tab" role="tab" type="button" data-action="tab" data-tab="people">People <span class="count" id="c-people">–</span></button>
+    <button class="tab" role="tab" type="button" data-action="tab" data-tab="projects">Projects <span class="count" id="c-projects">–</span></button>
+    <button class="tab" role="tab" type="button" data-action="tab" data-tab="publications">Publications <span class="count" id="c-pub">–</span></button>
+  </nav>
+
+  <main id="view" aria-live="polite"><div class="notice"><h2>Loading…</h2></div></main>
+  <footer class="credits">Compass was built by Annachiara Ruospo with the help of Claude (Anthropic)</footer>
+</div>
+
+<div id="scrim" hidden data-action="close"></div>
+<aside id="drawer" role="dialog" aria-modal="true" aria-labelledby="dr-title"></aside>
+<div id="toast" role="status" hidden></div>
+<input type="file" id="archive-file" accept=".compass,.bussola,.grip,.sqlite3" hidden>
+
+<script src="static/app.js" defer></script>
+</body>
+</html>
