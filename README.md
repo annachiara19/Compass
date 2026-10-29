@@ -9,6 +9,27 @@ deliverables, budget, expenses, contacts and people involved; tasks as a list, a
 
 Everyday instructions are in `README.txt`.
 
+<table>
+  <tr>
+    <td><img src="docs/screenshots/today.png" alt="Today: overdue tasks, next tasks and upcoming deadlines"></td>
+    <td><img src="docs/screenshots/tasks-board.png" alt="Tasks as a board: to do, in progress, done"></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Today</b>: what is overdue, what is next</td>
+    <td align="center"><b>Tasks</b>: list or board</td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/person.png" alt="A PhD student's page: milestones, meetings, projects"></td>
+    <td><img src="docs/screenshots/project.png" alt="A project page: deliverables, budget, people"></td>
+  </tr>
+  <tr>
+    <td align="center"><b>People</b>: milestones, meeting notes, publications</td>
+    <td align="center"><b>Projects</b>: deliverables, budget, people, contacts</td>
+  </tr>
+</table>
+
+<sub>Screenshots use the built-in sample data: names, projects and emails are made up.</sub>
+
 ## Running it
 
 - **Windows**: `Install Compass.bat` (Python ≥ 3.10), then the Compass icon on the desktop.
