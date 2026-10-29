@@ -1,3 +1,5 @@
+<p align="center"><img src="static/favicon.svg" width="96" alt="Compass logo"></p>
+
 # Compass — research and people management
 
 A local app for academics who supervise thesis and PhD students and run research and industry projects:
