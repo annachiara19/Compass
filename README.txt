@@ -50,12 +50,21 @@ BACKUPS
   nothing is lost if the PC breaks.
 
 
-MOVING COMPASS TO ANOTHER PC
-----------------------------
-On the old PC: Settings > "Export everything" (a .compass file).
-On the new PC: install Compass, and on first start click "Import a backup"
-and choose the file. Sign in with your usual username and password.
+MOVING OR SHARING THE DATA
+--------------------------
+Settings > "Export everything" creates a .compass file with all the data
+(people, projects, deadlines, meetings, publications, tasks). Usernames and
+passwords are not in it.
+
+On another PC, or for a colleague who receives the file:
+- first start: fill in name, username and password, then click
+  "Import a .compass file" and choose the file;
+- Compass already in use: Settings > "Import…". The data on that PC is
+  replaced by the file's (a copy is saved first); the user and password
+  stay the same.
 The same command restores a copy from the backup folder (.sqlite3).
+The .compass file holds personal data about the people you supervise:
+send it only to people who should see it.
 
 
 WHERE THE DATA IS

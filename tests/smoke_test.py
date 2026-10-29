@@ -115,11 +115,25 @@ def main():
     check(arch.status_code == 200 and arch.data.startswith(b"SQLite format 3"), "export .compass backup")
     app2 = appmod.create_app(os.path.join(tmp, "nuovo", "compass.sqlite3"))
     n = app2.test_client()
-    r = n.post("/api/setup/import", data=arch.data, headers=OCT)
-    check(r.status_code == 200 and r.json["imported"]["people"] == 6, "PC nuovo: importa lo stato al primo avvio")
-    n.post("/api/login", json={"username": "anna", "password": "password-lunga-1"}, headers=H)
-    check(len(n.get("/api/state").json["state"]["tasks"]) >= 10, "PC nuovo: dati presenti dopo l'accesso")
-    check(n.post("/api/setup/import", data=b"ciao", headers=OCT).status_code in (400, 409), "file non valido rifiutato")
+    import sqlite3
+    raw = os.path.join(tmp, "export.compass")
+    with open(raw, "wb") as f:
+        f.write(arch.data)
+    with sqlite3.connect(raw) as x:
+        n_users = x.execute("SELECT COUNT(*) FROM users").fetchone()[0]
+    check(n_users == 0 and b"scrypt" not in arch.data and b"anna" not in arch.data, "l'export non contiene utenti né password")
+    check(n.post("/api/archive", data=arch.data, headers=OCT).status_code == 401, "import senza accesso: rifiutato")
+    n.post("/api/setup", json={"name": "Mario", "username": "mario", "password": "password-mario-1"}, headers=H)
+    r = n.post("/api/archive", data=arch.data, headers=OCT)
+    check(r.status_code == 200 and r.json["imported"]["people"] == 6, "altra persona: importa i dati nel suo Compass")
+    st = n.get("/api/state")
+    check(st.status_code == 200 and len(st.json["state"]["tasks"]) >= 10, "dopo l'import resta collegata, dati presenti")
+    n.post("/api/logout", json={}, headers=H)
+    check(n.post("/api/login", json={"username": "mario", "password": "password-mario-1"}, headers=H).status_code == 200,
+          "dopo l'import vale ancora la sua password")
+    check(n.post("/api/login", json={"username": "anna", "password": "password-lunga-1"}, headers=H).status_code == 401,
+          "l'utente di chi ha esportato non arriva")
+    check(n.post("/api/archive", data=b"ciao", headers=OCT).status_code == 400, "file non valido rifiutato")
 
     r = c.delete("/api/examples", json={}, headers=H)
     st = r.json["state"]

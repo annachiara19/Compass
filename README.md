@@ -57,7 +57,8 @@ Every request that changes data needs the `X-Compass: 1` header (CSRF protection
 - `POST /api/<entity>` · `PATCH /api/<entity>/<id>` · `DELETE /api/<entity>/<id>`
   with entity in `people`, `projects`, `contacts`, `expenses`, `deadlines`, `meetings`, `pubs`, `tasks`
 - `GET /api/calendar.ics` — open deadlines and tasks
-- `GET /api/archive` / `POST /api/archive` — export / import everything (.compass)
+- `GET /api/archive` / `POST /api/archive` — export / import all data (.compass). The file never contains
+  users or password hashes; importing replaces the data and keeps the current user.
 - `POST /api/examples` / `DELETE /api/examples` — sample data
 
 Amounts are stored in cents (`budget_cents`, `amount_cents`); input also accepts text such as `12,500.50`

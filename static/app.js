@@ -141,15 +141,20 @@ async function login(){
   catch(e){ err.textContent=e.message; err.hidden=false; }
   btn.disabled=false;
 }
-async function setup(){
+function setupFields(){
   const name=$('#s-name').value.trim(), username=$('#s-user').value.trim(), p1=$('#s-pass').value, p2=$('#s-pass2').value;
-  const err=$('#setup-err'), fail=m=>{ err.textContent=m; err.hidden=false; };
+  const err=$('#setup-err'), fail=m=>{ err.textContent=m; err.hidden=false; return null; };
   if(!name) return fail('Enter your full name.');
   if(!/^[A-Za-z0-9._@-]{3,60}$/.test(username)) return fail('Username: 3 to 60 characters among letters, digits, dot, hyphen, @ (no spaces).');
   if(p1.length<MIN_PASSWORD) return fail('The password must be at least '+MIN_PASSWORD+' characters long.');
   if(p1!==p2) return fail('The two passwords do not match.');
-  err.hidden=true; const btn=$('#setup-btn'); btn.disabled=true;
-  try{ const j=await api('POST','api/setup',{name,username,password:p1}); S.me=j.me; await startApp(); toast('Compass is ready. Start from the sample data or add your own people.'); }
+  err.hidden=true; return {name, username, password:p1};
+}
+async function setup(){
+  const v=setupFields(); if(!v) return;
+  const err=$('#setup-err'), fail=m=>{ err.textContent=m; err.hidden=false; };
+  const btn=$('#setup-btn'); btn.disabled=true;
+  try{ const j=await api('POST','api/setup',v); S.me=j.me; await startApp(); toast('Compass is ready. Start from the sample data or add your own people.'); }
   catch(e){ fail(e.message); }
   btn.disabled=false;
 }
@@ -693,7 +698,7 @@ function openSettings(){
   const html=`<div class="dr-head"><div><p class="eyebrow">${esc(S.me.displayName)} · ${esc(S.me.username)}</p><h2 id="dr-title">Settings</h2></div><button class="btn ghost" type="button" data-action="close">Close</button></div>
     <div class="dr-body settings-list">
       <section><h3>Calendar</h3><p class="hint">Download open deadlines, tasks and paper deadlines as an .ics file to import into Outlook, Google Calendar or Apple Calendar. It is a snapshot: download it again to update.</p><div><a class="btn" href="api/calendar.ics" download>Download calendar (.ics)</a></div></section>
-      <section><h3>Full backup</h3><p class="hint">A single .compass file with everything: people, projects, deadlines, meetings, publications, tasks and your user. Use it to move Compass to another PC or to keep a copy.</p>
+      <section><h3>Export and import</h3><p class="hint">A single .compass file with all the data: people, projects, deadlines, meetings, publications and tasks. Your username and password are not in it. Use it to move Compass to another PC, keep a copy or share the data with someone who uses Compass.</p>
         <div class="top-actions"><button class="btn primary" type="button" data-action="archive-export">Export everything</button><button class="btn" type="button" data-action="archive-pick">Import…</button></div>
         <div id="archive-confirm"></div></section>
       <section><h3>Sample data</h3>${S.d.examples?'<div><button class="btn" type="button" data-action="clear-examples">Remove sample data</button></div>':'<p class="hint">Try the features without touching your data: everything loaded is marked “sample” and can be removed with one click.</p><div><button class="btn" type="button" data-action="load-examples">Load sample data</button></div>'}</section>
@@ -731,7 +736,7 @@ async function uploadArchive(url,file){
   if(!res.ok) throw new Error((j&&j.error)||('Import failed ('+res.status+').'));
   return j.imported;
 }
-const importedMsg = i => `Imported: ${i.people} people, ${i.projects} projects, ${i.tasks} tasks. Sign in with your username and password.`;
+const importedMsg = i => `Imported: ${i.people} people, ${i.projects} projects, ${i.tasks} tasks.`;
 
 /* ---------- pannello laterale ---------- */
 function openDrawer(html,state){
@@ -819,10 +824,10 @@ document.addEventListener('click',async e=>{
     case 'archive-cancel': S.archiveFile=null; $('#archive-confirm').innerHTML=''; break;
     case 'archive-import': {
       if(!S.archiveFile) break; el.disabled=true; el.textContent='Importing…';
-      try{ const info=await uploadArchive('api/archive',S.archiveFile); S.me=null; S.d=null; showLogin(null, importedMsg(info)+(info.backup?' Your previous data was saved as '+info.backup.split(/[\\/]/).pop()+'.':'')); }
+      try{ const info=await uploadArchive('api/archive',S.archiveFile); closeDrawer(); const j=await api('GET','api/state'); applyState(j.state); go('today'); toast(importedMsg(info)+(info.backup?' Your previous data was saved as '+info.backup.split(/[\\/]/).pop()+'.':'')); }
       catch(err){ el.disabled=false; el.textContent='Yes, import'; toast(err.message); }
       break; }
-    case 'setup-import': $('#setup-archive').click(); break;
+    case 'setup-import': if(setupFields()) $('#setup-archive').click(); break;
   }
 });
 document.addEventListener('change',async e=>{
@@ -846,15 +851,23 @@ document.addEventListener('change',async e=>{
   else if(t.id==='archive-file'){
     const f=t.files[0]; t.value=''; if(!f) return;
     S.archiveFile=f; const box=$('#archive-confirm'); if(!box) return;
-    box.innerHTML=`<div class="panel"><p><b>Replace all Compass data with the contents of ${esc(f.name)}?</b><br><span class="hint">Your current data is saved to a backup first. Afterwards, sign in with the username and password stored in the file.</span></p>
+    box.innerHTML=`<div class="panel"><p><b>Replace all Compass data with the contents of ${esc(f.name)}?</b><br><span class="hint">Your current data is saved to a backup first. Your username and password stay the same.</span></p>
       <div class="top-actions"><button class="btn" type="button" data-action="archive-cancel">Cancel</button><button class="btn danger" type="button" data-action="archive-import">Yes, import</button></div></div>`;
   }
   else if(t.id==='setup-archive'){
     const f=t.files[0]; t.value=''; if(!f) return;
+    const v=setupFields(); if(!v) return;
     const err=$('#setup-err'); err.hidden=true; const b=$('#setup-import-btn'); b.disabled=true; b.textContent='Importing '+f.name+'…';
-    try{ const info=await uploadArchive('api/setup/import',f); showLogin(null, importedMsg(info)); }
-    catch(x){ err.textContent=x.message; err.hidden=false; }
-    b.disabled=false; b.textContent='Import a backup';
+    let created=false;
+    try{
+      const j=await api('POST','api/setup',v); S.me=j.me; created=true;
+      const info=await uploadArchive('api/archive',f);
+      await startApp(); toast(importedMsg(info));
+    }catch(x){
+      if(created){ await startApp(); toast('Your user was created, but the import failed: '+x.message+' Try again from Settings.'); }
+      else { err.textContent=x.message; err.hidden=false; }
+    }
+    b.disabled=false; b.textContent='Import a .compass file';
   }
 });
 let searchT;

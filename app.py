@@ -744,7 +744,7 @@ def clear_examples():
 # ---------------------------------------------------------------- stato completo: esporta e importa
 
 ARCHIVE_MAX = 64_000_000
-ARCHIVE_TABLES = ("users", "settings") + tuple(reversed(dbm.DATA_TABLES))   # ordine di inserimento
+ARCHIVE_TABLES = tuple(reversed(dbm.DATA_TABLES))   # insertion order; users and settings never travel
 SQLITE_MAGIC = b"SQLite format 3\x00"
 
 
@@ -762,7 +762,8 @@ def _archive_copy(dest_path):
 @bp.get("/api/archive")
 @login_required
 def export_archive():
-    """All of Compass in one .compass file (the SQLite database): to move it to another PC or keep a copy."""
+    """All the data in one .compass file (a SQLite database), without users or passwords:
+    to move it to another PC, keep a copy or share it with someone else."""
     folder = os.path.dirname(os.path.abspath(current_app.config["DB_PATH"]))
     fd, tmp = tempfile.mkstemp(suffix=".compass", dir=folder)
     os.close(fd)
@@ -770,6 +771,7 @@ def export_archive():
         _archive_copy(tmp)
         conn = sqlite3.connect(tmp)
         try:
+            conn.execute("DELETE FROM users")   # the password hash never leaves this PC
             for k, v in (("exported_at", dbm.now_iso()), ("exported_by", current_user()["display_name"])):
                 conn.execute("INSERT INTO settings(key, value) VALUES (?, ?) "
                              "ON CONFLICT(key) DO UPDATE SET value = excluded.value", (k, v))
@@ -812,8 +814,6 @@ def _check_archive(path):
     conn = dbm.connect(path)
     try:
         conn.execute("PRAGMA journal_mode=DELETE")
-        if not conn.execute("SELECT COUNT(*) FROM users").fetchone()[0]:
-            raise ApiError(400, "The file contains no user: you would not be able to sign in after importing it.")
         count = lambda t: conn.execute(f"SELECT COUNT(*) FROM {t}").fetchone()[0]  # noqa: E731
         return {"people": count("people"), "projects": count("projects"), "tasks": count("tasks"),
                 "exportedAt": dbm.get_setting(conn, "exported_at", ""),
@@ -847,21 +847,13 @@ def _replace_all(path):
             for t in ARCHIVE_TABLES:
                 cols = ", ".join(r["name"] for r in conn.execute(f"PRAGMA main.table_info({t})"))
                 conn.execute(f"INSERT INTO main.{t}({cols}) SELECT {cols} FROM imp.{t}")
-            conn.execute("UPDATE users SET session_version = session_version + ?", (1000 + secrets.randbelow(10**6),))
-            for k in ("exported_at", "exported_by"):
-                conn.execute("DELETE FROM settings WHERE key = ?", (k,))
-            dbm.set_setting(conn, "rev", max(old_rev, int(dbm.get_setting(conn, "rev", "0") or 0)) + 1)
+            dbm.set_setting(conn, "rev", old_rev + 1)
             conn.commit()
         except Exception:
             conn.rollback()
             raise
     finally:
         conn.execute("DETACH DATABASE imp")
-    key = secrets.token_hex(32)
-    if not os.environ.get("SECRET_KEY", "").strip():
-        (Path(os.path.dirname(os.path.abspath(current_app.config["DB_PATH"]))) / "secret_key").write_text(key)
-    current_app.secret_key = key
-    session.clear()
 
 
 def _import_archive():
@@ -892,16 +884,7 @@ def _import_archive():
 @bp.post("/api/archive")
 @login_required
 def import_archive():
-    return _import_archive()
-
-
-@bp.post("/api/setup/import")
-def setup_import():
-    """Primo avvio sul PC nuovo: si importa lo stato invece di creare l'utente."""
-    if not _local_request():
-        raise ApiError(403, "Importing at first run is only possible from the PC running Compass.")
-    if not _setup_needed(get_db()):
-        raise ApiError(409, "Compass is already set up: sign in and import from Settings.")
+    """Replaces the data (people, projects, tasks…) with the file's; your user and password stay as they are."""
     return _import_archive()
 
 
